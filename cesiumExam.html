@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Include the CesiumJS JavaScript and CSS files -->
+    <script src="./Build/Cesium/Cesium.js"></script>
+    <link href="./Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+    <script src="../../Build/Cesium/Cesium.js"></script>
+    <title>zscesiumtest</title>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <script>
+      Cesium.Ion.defaultAccessToken =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2NGM4MDcxOS05Zjk3LTQ2YmMtYjAxYi0zYTczNWFkYzFlN2EiLCJpZCI6NzY0NTcsImlhdCI6MTYzOTQ2ODI2NH0.Zsp28WnnCpj4wlAIQwIwcSob228zSaz510QE3zKQN58";
+
+      const viewer = new Cesium.Viewer("cesiumContainer", {
+        // terrainProvider: Cesium.createWorldTerrain(),
+        homeButton: false,
+        sceneModePicker: false,
+        baseLayerPicker: false,
+        navigationHelpButton: false,
+        animation: false,
+        timeline: false,
+        fullscreenButton: false,
+        vrButton: false,
+        infoBox: true,
+      });
+      var webKey = "b4840519507387d17361e5d288823acc";
+
+      const alirl = [
+        [
+          [80.19, 41.09],
+          [87.36, 43.45],
+        ],
+        [
+          [88.12, 47.5],
+          [87.36, 43.45],
+        ],
+        [
+          [76.08, 39.42],
+          [87.36, 43.45],
+        ],
+        [
+          [82.08, 44.57],
+          [87.36, 43.45],
+        ],
+        [
+          [87.18, 44.02],
+          [87.36, 43.45],
+        ],
+        [
+          [87.58, 44.09],
+          [87.36, 43.45],
+        ],
+        [
+          [93.28, 42.5],
+          [87.36, 43.45],
+        ],
+        [
+          [79.55, 37.09],
+          [87.36, 43.45],
+        ],
+        [
+          [84.51, 45.36],
+          [87.36, 43.45],
+        ],
+        [
+          [75.59, 39.3],
+          [87.36, 43.45],
+        ],
+        [
+          [86.07, 41.46],
+          [87.36, 43.45],
+        ],
+        [
+          [84.56, 44.27],
+          [87.36, 43.45],
+        ],
+        [
+          [86.0, 44.18],
+          [87.36, 43.45],
+        ],
+        [
+          [82.59, 46.46],
+          [87.36, 43.45],
+        ],
+        [
+          [89.11, 42.54],
+          [87.36, 43.45],
+        ],
+        [
+          [81.2, 43.55],
+          [87.36, 43.45],
+        ],
+      ];
+
+      const aboutValue = [1, 2, 0, 4, 0, 6, 0, 3, 0, 0, 0, 0, 23, 8, 9, 0];
+
+      viewer._cesiumWidget._creditContainer.style.display = "none"; //去掉左下角那个不可爱的图标
+
+      //影像底图
+      viewer.imageryLayers.addImageryProvider(
+        new Cesium.WebMapTileServiceImageryProvider({
+          url:
+            "http://t0.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=" +
+            webKey,
+          layer: "tdtBasicLayer",
+          style: "default",
+          format: "image/jpeg",
+          tileMatrixSetID: "GoogleMapsCompatible",
+          show: false,
+        })
+      );
+
+      //影像注记
+      viewer.imageryLayers.addImageryProvider(
+        new Cesium.WebMapTileServiceImageryProvider({
+          url:
+            "http://t0.tianditu.com/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg&tk=" +
+            webKey,
+          layer: "tdtAnnoLayer",
+          style: "default",
+          format: "image/jpeg",
+          tileMatrixSetID: "GoogleMapsCompatible",
+          show: false,
+        })
+      );
+      // 将三维球定位到中国
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(85, 24, 2500000),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-60),
+          roll: Cesium.Math.toRadians(0),
+        },
+        compconste: function callback() {
+          // 定位完成之后的回调函数
+        },
+      });
+
+      // viewer.scene.primitives.add(new Cesium.Cesium3DTileset({url: '/sj.json'}));
+      const promise = Cesium.GeoJsonDataSource.load("./data/sj.json").then(
+        function (dataSource) {
+          viewer.dataSources.add(dataSource);
+          const entities = dataSource.entities.values;
+          for (let i = 0; i < entities.length; i++) {
+            const entity = entities[i];
+            if (entity.polygon) {
+              entity.shadowMode = Cesium.ShadowMode.CAST_AND_RECEIVE;
+              entity.polygon.extrudedHeight = Math.floor(
+                Math.random() * 40000 + 20000
+              ); // 单位是米
+              const color = Cesium.Color.fromCssColorString(
+                "rgba(30, 65, 121, 1)"
+              ); // 暗蓝色
+              // entity.polygon.material = color
+              entity.polygon.outlineColor = Cesium.Color.fromCssColorString(
+                "rgba(11, 26, 51,0.8)"
+              );
+              entity.polygon.material = new Cesium.GridMaterialProperty({
+                color: color,
+                cellAlpha: 1,
+                lineCount: new Cesium.Cartesian3(8, 8, 8),
+                lineThickness: new Cesium.Cartesian3(2.0, 2.0, 2.0),
+              });
+              entity.shadowMode = Cesium.ShadowMode.CAST_AND_RECEIVE;
+            }
+          }
+
+          viewer.zoomTo(promise);
+        }
+      );
+      class LineFlowMaterialProperty {
+        constructor(options) {
+          this._definitionChanged = new Cesium.Event();
+          this._color = undefined;
+          this._speed = undefined;
+          this._percent = undefined;
+          this._gradient = undefined;
+          this.color = options.color;
+          this.speed = options.speed;
+          this.percent = options.percent;
+          this.gradient = options.gradient;
+        }
+
+        get isConstant() {
+          return false;
+        }
+
+        get definitionChanged() {
+          return this._definitionChanged;
+        }
+
+        getType(time) {
+          return Cesium.Material.LineFlowMaterialType;
+        }
+
+        getValue(time, result) {
+          if (!Cesium.defined(result)) {
+            result = {};
+          }
+
+          result.color = Cesium.Property.getValueOrDefault(
+            this._color,
+            time,
+            Cesium.Color.RED,
+            result.color
+          );
+          result.speed = Cesium.Property.getValueOrDefault(
+            this._speed,
+            time,
+            5.0,
+            result.speed
+          );
+          result.percent = Cesium.Property.getValueOrDefault(
+            this._percent,
+            time,
+            0.1,
+            result.percent
+          );
+          result.gradient = Cesium.Property.getValueOrDefault(
+            this._gradient,
+            time,
+            0.01,
+            result.gradient
+          );
+          return result;
+        }
+
+        equals(other) {
+          return (
+            this === other ||
+            (other instanceof LineFlowMaterialProperty &&
+              Cesium.Property.equals(this._color, other._color) &&
+              Cesium.Property.equals(this._speed, other._speed) &&
+              Cesium.Property.equals(this._percent, other._percent) &&
+              Cesium.Property.equals(this._gradient, other._gradient))
+          );
+        }
+      }
+
+      Object.defineProperties(LineFlowMaterialProperty.prototype, {
+        color: Cesium.createPropertyDescriptor("color"),
+        speed: Cesium.createPropertyDescriptor("speed"),
+        percent: Cesium.createPropertyDescriptor("percent"),
+        gradient: Cesium.createPropertyDescriptor("gradient"),
+      });
+
+      Cesium.LineFlowMaterialProperty = LineFlowMaterialProperty;
+      Cesium.Material.LineFlowMaterialProperty = "LineFlowMaterialProperty";
+      Cesium.Material.LineFlowMaterialType = "LineFlowMaterialType";
+      Cesium.Material.LineFlowMaterialSource = `
+    uniform vec4 color;
+    uniform float speed;
+    uniform float percent;
+    uniform float gradient;
+    czm_material czm_getMaterial(czm_materialInput materialInput){
+      czm_material material = czm_getDefaultMaterial(materialInput);
+      vec2 st = materialInput.st;
+      float t =fract(czm_frameNumber * speed / 1000.0);
+      t *= (1.0 + percent);
+      float alpha = smoothstep(t- percent, t, st.s) * step(-t, -st.s);
+      alpha += gradient;
+      material.diffuse = color.rgb;
+      material.alpha = alpha;
+      return material;
+    }
+    `;
+
+      Cesium.Material._materialCache.addMaterial(
+        Cesium.Material.LineFlowMaterialType,
+        {
+          fabric: {
+            type: Cesium.Material.LineFlowMaterialType,
+            uniforms: {
+              color: new Cesium.Color(1.0, 0.0, 0.0, 1.0),
+              speed: 10.0,
+              percent: 0.1,
+              gradient: 1000,
+            },
+            source: Cesium.Material.LineFlowMaterialSource,
+          },
+          translucent: function (material) {
+            return true;
+          },
+        }
+      );
+
+      /**
+       * @description: 抛物飞线效果初始化
+       * @param {*} _viewer
+       * @param {*} _num :每条线上的飞线数量
+       * @return {*}
+       */
+      function parabolaFlowInit(
+        _viewer,
+        _num,
+        p1,
+        p2,
+        _material,
+        _depthFailMaterial
+      ) {
+        let _center = [p1.longitude, p1.latitude];
+        let _positions = [[p2.longitude, p2.latitude]];
+        _positions.forEach((item) => {
+          let _siglePositions;
+          if (p1.height > p2.height) {
+            _siglePositions = parabola(_center, item, 100000);
+          } else {
+            _siglePositions = parabola(_center, item, 200000);
+          }
+
+          const color = { r: 100, g: 255, b: 80 };
+          // 创建飞线
+          for (let i = 0; i < _num; i++) {
+            let modelEntity = _viewer.entities.add({
+              polyline: {
+                positions: _siglePositions,
+                material: _material,
+                depthFailMaterial: _depthFailMaterial,
+                width: 2,
+              },
+            });
+
+            // setTimeout(function () {
+            //   _viewer.entities.remove(modelEntity)
+            // }, 1300)
+          }
+          // 创建轨迹线
+          // _viewer.entities.add({
+          //     polyline: {
+          //         positions: _siglePositions,
+          //         material: new Cesium.Color(1.0, 1.0, 0.0, 0.0),
+          //     }
+          // })
+        });
+
+        /**
+         * @description: 抛物线构造函数（参考开源代码）
+         * @param {*}
+         * @return {*}
+         */
+        function parabola(
+          startPosition,
+          endPosition,
+          height = 1000,
+          count = 100
+        ) {
+          // 方程 y=-(4h/L^2)*x^2+h h:顶点高度 L：横纵间距较大者
+          let result = [];
+          height = Math.max(+height, 1000);
+          count = Math.max(+count, 50);
+          let diffLon = Math.abs(startPosition[0] - endPosition[0]);
+          let diffLat = Math.abs(startPosition[1] - endPosition[1]);
+          let L = Math.max(diffLon, diffLat);
+          let dlt = L / count;
+          if (diffLon > diffLat) {
+            //base on lon
+            let delLat = (endPosition[1] - startPosition[1]) / count;
+            if (startPosition[0] - endPosition[0] > 0) {
+              dlt = -dlt;
+            }
+            for (let i = 0; i < count; i++) {
+              let h =
+                height -
+                (Math.pow(-0.5 * L + Math.abs(dlt) * i, 2) * 4 * height) /
+                  Math.pow(L, 2);
+              let lon = startPosition[0] + dlt * i;
+              let lat = startPosition[1] + delLat * i;
+              let point = new Cesium.Cartesian3.fromDegrees(lon, lat, h);
+              result.push(point);
+            }
+          } else {
+            //base on lat
+            let delLon = (endPosition[0] - startPosition[0]) / count;
+            if (startPosition[1] - endPosition[1] > 0) {
+              dlt = -dlt;
+            }
+            for (let i = 0; i < count; i++) {
+              let h =
+                height -
+                (Math.pow(-0.5 * L + Math.abs(dlt) * i, 2) * 4 * height) /
+                  Math.pow(L, 2);
+              let lon = startPosition[0] + delLon * i;
+              let lat = startPosition[1] + dlt * i;
+              let point = new Cesium.Cartesian3.fromDegrees(lon, lat, h);
+              result.push(point);
+            }
+          }
+          return result;
+        }
+      }
+
+      // 添加抛物飞线效果
+      alirl.forEach((line, i) => {
+        const start = {
+          longitude: line[0][0],
+          latitude: line[0][1],
+          height: 80000,
+        };
+
+        const end = {
+          longitude: line[1][0],
+          latitude: line[1][1],
+          height: 90000,
+        };
+        let color;
+        let material;
+        let depthFailMaterial;
+        if (aboutValue[i] === 0) {
+          color = { r: 255, g: 127, b: 80 };
+          // 虚线样式
+          material = new Cesium.PolylineDashMaterialProperty({
+            color: new Cesium.Color(
+              color.r / 255.0,
+              color.g / 255.0,
+              color.b / 255.0,
+              0.8
+            ),
+          });
+          depthFailMaterial = new Cesium.PolylineDashMaterialProperty({
+            color: new Cesium.Color(
+              color.r / 255.0,
+              color.g / 255.0,
+              color.b / 255.0,
+              0.2
+            ), // 两端的透明度
+          });
+        } else {
+          // 实线样式
+          color = { r: 100, g: 255, b: 80 };
+          material = new Cesium.LineFlowMaterialProperty({
+            color: new Cesium.Color(
+              color.r / 255.0,
+              color.g / 255.0,
+              color.b / 255.0,
+              0.8
+            ),
+            speed: 10,
+            gradient: 0.7,
+          });
+          depthFailMaterial = new Cesium.PolylineDashMaterialProperty({
+            color: new Cesium.Color(
+              color.r / 255.0,
+              color.g / 255.0,
+              color.b / 255.0,
+              0.1
+            ), // 两端的透明度
+            gapColor: new Cesium.Color(
+              color.r / 255.0,
+              color.g / 255.0,
+              color.b / 255.0,
+              0.1
+            ),
+          });
+        }
+
+        parabolaFlowInit(viewer, 1, start, end, material, depthFailMaterial);
+
+        const startbillboard = Cesium.Cartesian3.fromDegrees(
+          start.longitude,
+          start.latitude,
+          start.height
+        );
+        const endbillboard = Cesium.Cartesian3.fromDegrees(
+          end.longitude,
+          end.latitude,
+          end.height
+        );
+
+        const imageUrl = canvasBillboard(i);
+
+        // 使用生成的图像作为 Billboard
+        viewer.entities.add({
+          position: startbillboard,
+          billboard: {
+            image: imageUrl,
+            width: 77,
+            height: 26,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          },
+        });
+        // 在终点添加五角星
+        viewer.entities.add({
+          position: endbillboard,
+          billboard: {
+            image: "/五角星圆角.svg",
+            width: 40,
+            height: 40,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 底部对齐
+          },
+        });
+      });
+
+      function canvasBillboard(i) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 96;
+        canvas.height = 70; // 增加高度
+        const context = canvas.getContext("2d");
+
+        const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+        if (aboutValue[i] === 0) {
+          gradient.addColorStop(0, "#a05d4a");
+          gradient.addColorStop(1, "#a05d4a");
+        } else {
+          gradient.addColorStop(0, "lightgreen");
+          gradient.addColorStop(1, "darkgreen");
+        }
+
+        context.fillStyle = gradient;
+        context.globalAlpha = 0.6;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.fillStyle = "white";
+        context.font = "bold 18px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const labelText = "ABC " + aboutValue[i];
+        context.fillText(labelText, canvas.width / 2, canvas.height / 2);
+
+        return canvas.toDataURL();
+      }
+    </script>
+  </body>
+  <style>
+    html,
+    body,
+    #cesiumContainer {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .cesium-viewer-toolbar {
+      visibility: hidden;
+    }
+  </style>
+</html>
